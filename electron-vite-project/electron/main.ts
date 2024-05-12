@@ -1,11 +1,10 @@
-import { app, BrowserWindow } from 'electron'
+import { app, BrowserWindow, Menu, ipcMain } from 'electron'
 import { createRequire } from 'node:module'
 import { fileURLToPath } from 'node:url'
 import path from 'node:path'
 
 const require = createRequire(import.meta.url)
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
-
 // The built directory structure
 //
 // ├─┬─┬ dist
@@ -33,6 +32,47 @@ function createWindow() {
       preload: path.join(__dirname, 'preload.mjs'),
     },
   })
+
+  // maximize
+  win.maximize()
+  const mainMenu = [
+    {
+      label: 'View',
+      submenu: [
+        {
+          label: 'Theme',
+          submenu: [
+            {
+              label: 'Dark',
+              click: () => {
+                win?.webContents.send('theme', "Dark")
+              }
+            },
+            {
+              label: 'Light',
+              click: () => {
+                win?.webContents.send('theme', "Ligth")
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      label: 'Tools',
+      submenu: [
+        {
+          label: 'Inspector',
+          accelerator: 'Ctrl+I', // Atajo de teclado
+          click: () => {
+            win.webContents.toggleDevTools(); // Abre o cierra las herramientas de desarrollo
+          },
+        }
+      ]
+    }
+  ];
+  const menu = Menu.buildFromTemplate(mainMenu);
+  Menu.setApplicationMenu(menu);
 
   // Test active push message to Renderer-process.
   win.webContents.on('did-finish-load', () => {
@@ -66,3 +106,4 @@ app.on('activate', () => {
 })
 
 app.whenReady().then(createWindow)
+
